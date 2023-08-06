@@ -21,7 +21,7 @@ def get_centroid(bboxes):
         return centroid
 
 
-feed = cv2.VideoCapture('videos/walking-person.mp4')
+feed = cv2.VideoCapture('videos/puppy-walk.mp4')
 
 model = YOLO("yolov8n.pt")
 
@@ -34,8 +34,10 @@ while True:
         break
     canvas = frame.copy()
     # if count%2 == 0:
-    results = model.predict(source=frame, conf=0.5)
+    # Filter detected persons.
+    results = model.predict(source=frame, classes=0, conf=0.5)
     boxes = results[0].boxes
+    print(boxes)
     
     centroid_coords = get_centroid(boxes)
     print('Centroid : ', centroid_coords)
