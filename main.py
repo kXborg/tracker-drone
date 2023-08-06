@@ -3,7 +3,7 @@ import cv2
 import numpy as np 
 import math
 
-
+# Find focus point using `get_centroid()` function.
 def get_centroid(bboxes):
     # print('Bboxes: ', bboxes)
     if len(bboxes.xyxy.numpy()) != 0:
@@ -21,9 +21,10 @@ def get_centroid(bboxes):
 
         return centroid
 
-
+# Create video capture object.
 feed = cv2.VideoCapture('videos/beach-walk.mp4')
 
+# Load YOLO model.
 model = YOLO("yolov8n.pt")
 
 # set counter for frame skipping (may or may not require).
