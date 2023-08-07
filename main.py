@@ -21,6 +21,22 @@ def get_centroid(bboxes):
 
         return centroid
 
+
+# Colorize the region using `colorize()` function.
+def colorize(img, coords):
+    x1, y1, x2, y2 = coords[:4]
+    crop = img[y1:y2, x1:x2]
+    crop_h, crop_w = crop.shape[:2]
+    red_ch = np.ones((crop_h, crop_w), dtype=np.uint8)*255
+    green_ch = np.zeros((crop_h, crop_w), dtype=np.uint8)
+    blue_ch = np.zeros((crop_h, crop_w), dtype=np.uint8)
+    red_pallet_collection = [blue_ch, green_ch, red_ch]
+    red_pallet = cv2.merge(red_pallet_collection)
+    colorized_crop = cv2.add(crop, red_pallet)
+    img[y1:y2, x1:x2] = colorized_crop
+
+    return img
+
 # Create video capture object.
 feed = cv2.VideoCapture('videos/beach-walk.mp4')
 
@@ -53,7 +69,7 @@ while True:
         cv2.circle(canvas, (xc, yc), 4, (0,0,255), -1)
 
         # Logic for drone control goes here.
-        # Get control region coordinates.
+        # Get control region coordinates at 20% margin.
         cr_tlc_x, cr_tlc_y = int(0.20*width), int(0.20*height)
         cr_brc_x, cr_brc_y = int(0.80*width), int(0.80*height)
 
@@ -65,15 +81,23 @@ while True:
         # Centroid moved to left region.
         if (xc < cr_tlc_x and cr_tlc_y < yc < cr_brc_y):
             print('Focus moved to left, sending drone left')
+            # Glow left region.
+            canvas = colorize(canvas, (0, cr_tlc_y, cr_tlc_x, cr_brc_y))
             # send move left command.
         elif (cr_tlc_x < xc < cr_brc_x and yc < cr_tlc_y):
             print('Focus moved to ahead, sending drone forward')
+            # Glow forward region
+            canvas = colorize(canvas, (cr_tlc_x, 0, cr_brc_x, cr_tlc_y))
             # send move forward command.
         elif (xc > cr_brc_x and cr_tlc_y < yc < cr_brc_y):
             print('Focus moved to right, sending drone right')
+            # Glow right region.
+            canvas = colorize(canvas, (cr_brc_x, cr_tlc_y, width, cr_brc_y))
             # send move right command.
         elif(cr_tlc_x < xc < cr_brc_x and yc > cr_brc_y):
             print('Focus moved back, sending drone back')
+            # Glow bottom region.
+            canvas = colorize(canvas, (cr_tlc_x, cr_brc_y, cr_brc_x, height))
             # send move back command.
         else:
             print('Drone centered')
