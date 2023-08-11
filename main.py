@@ -64,7 +64,7 @@ if __name__ == '__main__':
     out = cv2.VideoWriter(f"video-{date_time}.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 25, (960, 720))
 
     # Create video capture object.
-    feed = cv2.VideoCapture('videos/beach-walk.mp4')
+    # feed = cv2.VideoCapture('videos/beach-walk.mp4')
 
     # Load YOLO model.
     model = YOLO("yolov8n.pt")
@@ -72,10 +72,11 @@ if __name__ == '__main__':
     # set counter for frame skipping (may or may not require).
     count = 0
     while True:
-        ret, frame = feed.read()
+        # ret, frame = feed.read()
+        frame = drone.get_frame_read().frame
         # increment counter.
         count += 1
-        if not ret:
+        if frame is None:
             print('Unable to read frames!')
             break
         canvas = frame.copy()
@@ -141,5 +142,6 @@ if __name__ == '__main__':
         if key == ord('q'):
             break
 
-    feed.release()
+    # feed.release()
+    out.release()
     cv2.destroyAllWindows()
