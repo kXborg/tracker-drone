@@ -1,11 +1,10 @@
-import cv2 
-import math
+import cv2
 import time
 import numpy as np
-from time import sleep
+from time import sleep 
 import keyboard as key
+from djitellopy import tello 
 from ultralytics import YOLO
-from djitellopy import tello
 from datetime import datetime
 
 
@@ -29,7 +28,6 @@ def controls():
     if key.getKey("l"): drone.land()
 
     return [lr, fb, ud, rot]
-
 
 
 # Find focus point using `get_centroid()` function.
@@ -67,15 +65,13 @@ def colorize(img, coords):
     return img
 
 
-if __name__ == '__main__':
-    # Initialize pygame window.
+if __name__ == "__main__":
+    # Initializations.
     key.init()
-    # Init drone.
     drone = tello.Tello()
+    # Start the drone.
     drone.connect()
-    battery = drone.get_battery()
-    print('Battery Percentage : ', battery)
-
+    print(drone.get_battery())
     # Start video stream.
     drone.streamon()
     print('Video stream started.')
@@ -83,29 +79,36 @@ if __name__ == '__main__':
     now = datetime.now()
     date_time = now.strftime("%m-%d-%Y-%H-%M-%S")
 
-    # Create video writer object.
+    # Create the video writer.
     out = cv2.VideoWriter(f"video-{date_time}.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 25, (960, 720))
 
-    # Create video capture object.
-    # feed = cv2.VideoCapture('videos/beach-walk.mp4')
+    # Load model.
+    model = YOLO('yolov8n.pt')
 
-    # Load YOLO model.
-    model = YOLO("yolov8n.pt")
-
-    # set counter for frame skipping (may or may not require).
-    count = 0
     while True:
+        # Acquire control speeds.
         vals = controls()
         # Send control signal.
         drone.send_rc_control(vals[0], vals[1], vals[2], vals[3])
-        # ret, frame = feed.read()
-        # drone.set_video_resolution(tello.RESOLUTION_720P)
+
         frame = drone.get_frame_read().frame
-        # increment counter.
-        count += 1
-        if frame is None:
-            print('Unable to read frames!')
-            break
+        # t1 = time.time()
+        # det_img = draw_predictions(img.copy(), model)
+        # t2 = time.time()
+        # det_time = t2 - t1
+        # fps = int(1/det_time)
+        # print(img.shape)
+        # cv2.putText(det_img, f"FPS : {fps}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 1)
+
+        # # Display.
+        # cv2.imshow('Stream', det_img)
+        # out.write(det_img)
+        # wait = cv2.waitKey(1)
+
+        # if wait == ord('q'):
+        #     print('Program Terminated')
+        #     print('\n Thanks for flying Tello.')
+        #     break
         canvas = frame.copy()
         # Get image height width.
         height, width = frame.shape[:2]
@@ -171,6 +174,6 @@ if __name__ == '__main__':
         if key == ord('q'):
             break
 
-    # feed.release()
+    # Release the video writer.
     out.release()
     cv2.destroyAllWindows()
