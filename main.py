@@ -73,6 +73,7 @@ if __name__ == '__main__':
     count = 0
     while True:
         # ret, frame = feed.read()
+        # drone.set_video_resolution(tello.RESOLUTION_720P)
         frame = drone.get_frame_read().frame
         # increment counter.
         count += 1
@@ -138,6 +139,8 @@ if __name__ == '__main__':
             # print(x1, ',', x2, ',', y1, ',', y2)
 
         cv2.imshow("Results", cv2.resize(canvas, None, fx=0.5, fy=0.5))
+        print('Canvas Shape : ', canvas.shape)
+        out.write(canvas)
         key = cv2.waitKey(1)
         if key == ord('q'):
             break
