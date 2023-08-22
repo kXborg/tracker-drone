@@ -11,7 +11,7 @@ from datetime import datetime
 
 def controls():
     lr, fb, ud, rot = 0, 0, 0, 0
-    speed = 50 
+    speed = 50
 
     if key.getKey("LEFT"): lr = -speed
     if key.getKey("RIGHT"): lr = speed
@@ -27,6 +27,8 @@ def controls():
 
     if key.getKey("t"): drone.takeoff()
     if key.getKey("l"): drone.land()
+
+    # if key.getKey("p"): tracker_mode = not tracker_mode
 
     return [lr, fb, ud, rot]
 
@@ -90,13 +92,18 @@ if __name__ == '__main__':
     # feed = cv2.VideoCapture('videos/beach-walk.mp4')
 
     # Load YOLO model.
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolov8s.pt")
+
+    # Auto mode.
+    # tracker_mode = False
 
     # set counter for frame skipping (may or may not require).
     count = 0
     while True:
         vals = controls()
         # Send control signal.
+        # auto_track = vals[4]
+        # print(auto_track)
         drone.send_rc_control(vals[0], vals[1], vals[2], vals[3])
         # ret, frame = feed.read()
         # drone.set_video_resolution(tello.RESOLUTION_720P)
@@ -138,21 +145,25 @@ if __name__ == '__main__':
                 # Glow left region.
                 canvas = colorize(canvas, (0, cr_tlc_y, cr_tlc_x, cr_brc_y))
                 # send move left command.
+                drone.send_rc_control(-50, 0, 0, 0)
             elif (cr_tlc_x < xc < cr_brc_x and yc < cr_tlc_y):
                 print('Focus moved to ahead, sending drone forward')
                 # Glow forward region
                 canvas = colorize(canvas, (cr_tlc_x, 0, cr_brc_x, cr_tlc_y))
                 # send move forward command.
+                drone.send_rc_control(0, 50, 0, 0)
             elif (xc > cr_brc_x and cr_tlc_y < yc < cr_brc_y):
                 print('Focus moved to right, sending drone right')
                 # Glow right region.
                 canvas = colorize(canvas, (cr_brc_x, cr_tlc_y, width, cr_brc_y))
                 # send move right command.
+                drone.send_rc_control(50, 0, 0, 0)
             elif(cr_tlc_x < xc < cr_brc_x and yc > cr_brc_y):
                 print('Focus moved back, sending drone back')
                 # Glow bottom region.
                 canvas = colorize(canvas, (cr_tlc_x, cr_brc_y, cr_brc_x, height))
                 # send move back command.
+                drone.send_rc_control(0, -50, 0, 0)
             else:
                 print('Drone centered')
         
@@ -167,8 +178,8 @@ if __name__ == '__main__':
         cv2.imshow("Results", cv2.resize(canvas, None, fx=0.5, fy=0.5))
         print('Canvas Shape : ', canvas.shape)
         out.write(canvas)
-        key = cv2.waitKey(1)
-        if key == ord('q'):
+        wait_key = cv2.waitKey(1)
+        if wait_key == ord('q'):
             break
 
     # feed.release()
